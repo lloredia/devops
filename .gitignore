@@ -1,1 +1,28 @@
+# Interpreter and build artifacts
 *.o
+*.a
+*.pyc
+__pycache__/
+*.class
+*.retry
+a.out
+
+# Secrets and local credentials
+.env
+.env.*
+*.pem
+*.key
+creds
+*.hccap
+id_rsa
+id_ed25519
+
+# Local tooling
+.ansible/
+.venv/
+venv/
+.idea/
+.vscode/
+.DS_Store
+*.log
+nmap/

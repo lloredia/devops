@@ -1,0 +1,54 @@
+# Report-only lint for the learning modules.
+# Legacy examples are expected to fail modern linters, so each step
+# uses continue-on-error and the workflow does not block a pull request.
+name: lint
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install linters
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          python3 -m pip install --upgrade pip
+          python3 -m pip install ruff yamllint ansible-lint
+
+      - name: ShellCheck
+        continue-on-error: true
+        run: |
+          mapfile -d '' files < <(find 0* -name '*.sh' -print0)
+          if ((${#files[@]})); then
+            shellcheck "${files[@]}"
+          fi
+
+      - name: Ruff
+        continue-on-error: true
+        run: |
+          mapfile -d '' files < <(find 0* -name '*.py' -print0)
+          if ((${#files[@]})); then
+            ruff check "${files[@]}"
+          fi
+
+      - name: yamllint
+        continue-on-error: true
+        run: |
+          mapfile -d '' files < <(find 0* \( -name '*.yml' -o -name '*.yaml' \) -print0)
+          if ((${#files[@]})); then
+            yamllint -d '{extends: default, rules: {line-length: disable, truthy: disable, comments: disable, document-start: disable}}' "${files[@]}"
+          fi
+
+      - name: ansible-lint
+        continue-on-error: true
+        run: |
+          mapfile -d '' files < <(find 04-ansible -name '*.yml' ! -path '*/compose/*' -print0)
+          if ((${#files[@]})); then
+            ansible-lint "${files[@]}"
+          fi
